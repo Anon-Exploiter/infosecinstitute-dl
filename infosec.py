@@ -142,7 +142,6 @@ def downloadVideos(vidName, downloadLink):
 	"""
 	For downloading with aria2c
 	"""
-
 	command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{vidName.replace(' ', '_').replace('/', '')}.mp4' -c"
 	print(command)
 	os.system(command)
@@ -189,6 +188,5 @@ def main():
 if __name__ == '__main__':
 	try:
 		main()
-
 	except KeyboardInterrupt:
 		print("[!] Okay-sed :(")
