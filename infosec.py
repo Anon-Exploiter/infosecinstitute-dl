@@ -119,7 +119,7 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		urlJS 		= soup.find_all('script')[4].contents[0]
 		urlVid 		= re.findall(regex, urlJS)[0]
 
-		ddlURL 		= f"{host}{urlVid}"	
+		ddlURL 		= f"{host}{urlVid}"
 
 		response 	= requests.get(ddlURL,
 			headers = HEADERS,
@@ -183,7 +183,7 @@ def main():
 
 	for urls in ddlURLs:
 		for vidName, downloadLink in urls.items():
-			downloadVideos(vidName, downloadLink)	
+			downloadVideos(vidName, downloadLink)
 
 if __name__ == '__main__':
 	try:
