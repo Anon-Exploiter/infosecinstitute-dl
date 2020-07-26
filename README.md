@@ -1,9 +1,9 @@
 # infosecinstitute-dl
-A small and dirty python3 based script to download courses from Infosec Institute. 
+A small and dirty python3 based script to download courses from InfosecInstitute.
 
 ### Description
 
-A simple downloader for InfoSec's courses. Requires **Python3** and **aria2** (for downloading).
+InfosecInstitute courses downloader. Requires **Python3** and **aria2** (for downloading).
 
 Infosec.py automates everything, just change the Course's URL in main() function and it'll automatically generate all the links for the course and will write those links in **downloads.json**. By default, it'll start downloading too, let's say you don't want to download right now and don't want to fetch all the DDL links later too (so you need downloader.py only afterwards).
 
