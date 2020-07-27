@@ -11,6 +11,12 @@ Infosec.py automates everything, just change the Course's URL in main() function
 
 You also need to add your credentials in the script's main() function. The course link format is also given in the script. 
 
+### Features
+- Lists all courses
+- Fetches course based on user's inputted Course ID
+- Creates directory from the parsed ID
+- Downloads and places all the courses inside the folder
+
 ### Features (not-supported)
 PDF files aren't being downloaded now since they're using a external host for rendering the PDFs. Will look at it in free time. Feel free to submit a PR. 
 
