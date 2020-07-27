@@ -30,7 +30,7 @@ You also need to add your credentials in the script's main() function. The cours
 - Downloads and places all the courses inside the folder
 
 ### Features (not-supported)
-PDF files aren't being downloaded now since they're using a external host for rendering the PDFs. Will look at it in free time. Feel free to submit a PR. 
+PDF files aren't being downloaded now since they're using a external host for rendering the PDFs and that's llviewersg3a.com. Can't find a workaround for this, make sure to submit an issue or PR if you find one. 
 
 ### Filing Bugs/Contribution
 Made the script really quickly today, did resolve some issues, there might be other issues too, feel free to file a issue or create a PR if you come across any. 
