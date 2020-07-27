@@ -21,6 +21,16 @@ COOKIES 		= {
 	"flexcenter": '',
 }
 
+cyan 	= "\033[0;96m"
+green 	= "\033[0;92m"
+white 	= "\033[0;97m"
+red 	= "\033[0;91m"
+blue 	= "\033[0;94m"
+yellow 	= "\033[0;33m"
+magenta = "\033[0;35m"
+
+bar 	= "-" * 150
+
 def login(loginURL, username, password):
 	"""
 	Returns only the required cookie (i.e. flexcenter)
@@ -42,7 +52,8 @@ def login(loginURL, username, password):
 		allow_redirects = False,
 	)
 
-	flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]; print(flexcenter)
+	flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]
+	# print(flexcenter)
 	return(flexcenter)
 
 def fetchCourseLinks(url):
@@ -96,8 +107,51 @@ def parseCourseLinks(body):
 				urls[f"{vidNumber:03d}_{name}"] = url
 				vidNumber += 1
 
-		print(urls)
+		# print(urls)
 		return(urls)
+
+def fetchCourses():
+	print(bar)
+	print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
+		yellow, "ID", white,
+		magenta, "Course URL", white,
+		cyan, "Course Name", white,
+	))
+	print(bar)
+
+	data 		= {}
+	pagesURL 	= "https://flex.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=10000" 	# Fetches JSON containing all courses details/links
+	response 	= requests.get(pagesURL,
+		headers = HEADERS,
+		cookies = COOKIES,
+		# proxies = {
+		# 	'http': '127.0.0.1:8080',
+		# 	'https': '127.0.0.1:8080',
+		# },
+		# verify 	= False
+	)
+
+	if response.status_code == 200:
+		jsonData 	= json.loads(response.text)
+		jsonItems 	= jsonData['items']
+
+		for objs in jsonItems:
+			courseId 	= objs['id']
+			courseName 	= objs['name']
+			courseURL 	= objs['item_url']
+
+			data[courseId] = {'url': courseURL, 'name': courseName}
+
+			print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
+				yellow, courseId, white,
+				magenta, courseURL, white,
+				cyan, courseName, white,
+			))
+
+		print(bar)
+
+	# print(json.dumps(data, indent=4, default=str))
+	return(data)
 
 def returnVideoDownloadLink(host, vidURLs, videoName):
 	"""
@@ -113,6 +167,7 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		# },
 		# verify 	= False
 	)
+
 	try:
 		regex 		= r'videoUrl = \"(.*?)\"\;'
 		soup 		= BeautifulSoup(response.text, 'html.parser')
@@ -132,58 +187,85 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		)
 
 		downloadURL	= json.loads(response.text)['url']
-		print({videoName: downloadURL})
+		# print({videoName: downloadURL})
 		return({videoName: downloadURL})
 
 	except IndexError:
-		pass
+		return(None)
 
-def downloadVideos(vidName, downloadLink):
+def createCourseDirectory(name):
+	"""
+	For creation of the course directory
+	"""
+
+	path 		= os.getcwd()
+	courseDir	= os.path.join(path, name)
+
+	if not(os.path.isdir(courseDir)):
+		os.mkdir(courseDir)
+
+def downloadVideos(vidName, downloadLink, dirName):
 	"""
 	For downloading with aria2c
 	"""
-	command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{vidName.replace(' ', '_').replace('/', '')}.mp4' -c"
-	print(command)
+	vidName 	= vidName.replace('/', '').replace(',', '').replace('"', '').replace("'", '').replace(' ', '_')
+	command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{dirName}/{vidName}.mp4' -c"
+	print(f"\n{command}")
 	os.system(command)
 
 def main():
 	ddlURLs 	= []
 	host 		= "https://flex.infosecinstitute.com"
-	courseURL 	= "https://flex.infosecinstitute.com/portal/skills/path/834"
 	loginURL 	= "https://flex.infosecinstitute.com/portal/login"
 
 	username 	= ""
 	password 	= ""
-	if username == '' and password == '': exit("[!] Please edit and rerun the script with credentials")
 
+	if username == '' and password == '': exit("[!] Please edit and rerun the script with credentials")
 	cookies 				= login(loginURL, username, password)
 	COOKIES['flexcenter'] 	= cookies
 
-	jsonBody 	= fetchCourseLinks(courseURL)
-	videoURLs 	= parseCourseLinks(jsonBody)
+	courses 	= fetchCourses()
+	userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 25): "))
 
-	playlstName = []
-	playlistURL	= []
+	if userInput in courses:
+		print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
+		print(f"[$] URL: {yellow}{courses[userInput]['url']}{white}")
 
-	for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
-	for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
+		dirName 	= courses[userInput]['name'].replace('/', '').replace(',', '').replace('"', '').replace("'", '')
+		createCourseDirectory(dirName)
 
-	# for urls, names in zip(playlistURL, playlstName):
-	# 	print(returnVideoDownloadLink(host, urls, names))
-	# 	break
+		print(f"\n{cyan}[*] Fetching path's description")
+		jsonBody 	= fetchCourseLinks(courses[userInput]['url'])
 
-	with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
-		for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
-			print(results)
-			if results != None:
-				ddlURLs.append(results)
+		print(f"{yellow}[*] Fetching videos links")
+		videoURLs 	= parseCourseLinks(jsonBody)
 
-	print(ddlURLs)
-	with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
+		playlstName = []
+		playlistURL	= []
 
-	for urls in ddlURLs:
-		for vidName, downloadLink in urls.items():
-			downloadVideos(vidName, downloadLink)
+		for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
+		for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
+
+		# for urls, names in zip(playlistURL, playlstName):
+		# 	returnVideoDownloadLink(host, urls, names)
+			# break
+
+		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
+		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
+			for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
+				if results != None:
+					ddlURLs.append(results)
+
+		with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
+
+		print(f"\n{green}[*] Starting downloading of videos")
+		for urls in ddlURLs:
+			for vidName, downloadLink in urls.items():
+				downloadVideos(vidName, downloadLink, dirName)
+
+	else:
+		print(f"[!] {red}Course not found! Please course ID again{white}")
 
 if __name__ == '__main__':
 	try:
