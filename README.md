@@ -20,6 +20,11 @@ You also need to add your credentials in the script's main() function. The cours
 - python3-bs4
 - python3-requests
 
+### Tested On
+- Ubuntu 18.04 LTS
+- Pop! OS 18.04 LTS
+- ~Windows~
+
 ### Features
 - Lists all courses
 - Fetches course based on user's inputted Course ID
