@@ -33,7 +33,7 @@ PDF files aren't being downloaded now since they're using a external host for re
 Made the script really quickly today, did resolve some issues, there might be other issues too, feel free to file a issue or create a PR if you come across any. 
 
 ### Changelog
-| Changes                                                      | Release                                             |
-| ------------------------------------------------------------ | --------------------------------------------------- |
-| Lists all the courses, user will pass userID, will create folder name and will store all vids there     | 0.2 - 27-07-2020                                    |
-| Initial release containing infosec.py & downloader.py -> Requires manual intervention  | 0.1 - 26-07-2020                                    |
+| Changes                                                                                                   | Release                                             |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Lists all the courses, user will pass userID, will create folder name and will store all vids there       | 0.2 - 27-07-2020                                    |
+| Initial release containing infosec.py & downloader.py -> Requires manual intervention                     | 0.1 - 26-07-2020                                    |
