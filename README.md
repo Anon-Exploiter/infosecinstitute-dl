@@ -11,6 +11,12 @@ Infosec.py automates everything, just change the Course's URL in main() function
 
 You also need to add your credentials in the script's main() function. The course link format is also given in the script. 
 
+### Requirements
+- aria2
+- python3
+- python3-bs4
+- python3-requests
+
 ### Features
 - Lists all courses
 - Fetches course based on user's inputted Course ID
