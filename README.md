@@ -2,7 +2,7 @@
 
 A small and dirty python3 based script to download courses from InfosecInstitute.
 
-[![asciicast](https://asciinema.org/a/349868.svg)](https://asciinema.org/a/349868)
+[![asciicast](https://asciinema.org/a/350800.svg)](https://asciinema.org/a/350800)
 
 ### Description
 
