@@ -8,7 +8,7 @@ A small and dirty python3 based script to download courses from InfosecInstitute
 
 InfosecInstitute courses downloader. Requires **Python3** and **aria2** (for downloading).
 
-Infosec.py automates everything, it'll return the list of all paths, user will enter the path ID, it'll create a new folder and will start downloading all the path files in there. 
+Infosec.py automates everything, it'll return the list of all [paths](https://flex.infosecinstitute.com/portal/skills/asset/path), user will enter the path ID, it'll create a new folder and will start downloading all the path files in there. 
 
 You also need to add your credentials in the script's main() function. The course link format is also given in the script. 
 
