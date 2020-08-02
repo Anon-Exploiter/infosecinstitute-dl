@@ -166,25 +166,8 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 	Returns S3 bucket's DDL for videos
 	"""
 
-	response 	= requests.get(vidURLs,
-		headers = HEADERS,
-		cookies = COOKIES,
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False
-	)
-
-	try:
-		regex 		= r'videoUrl = \"(.*?)\"\;'
-		soup 		= BeautifulSoup(response.text, 'html.parser')
-		urlJS 		= soup.find_all('script')[4].contents[0]
-		urlVid 		= re.findall(regex, urlJS)[0]
-
-		ddlURL 		= f"{host}{urlVid}"
-
-		response 	= requests.get(ddlURL,
+	if not("/download?playlist_id=" in vidURLs):
+		response 	= requests.get(vidURLs,
 			headers = HEADERS,
 			cookies = COOKIES,
 			# proxies = {
@@ -194,12 +177,34 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 			# verify 	= False
 		)
 
-		downloadURL	= json.loads(response.text)['url']
-		if debug: print({videoName: downloadURL})
-		return({videoName: downloadURL})
+		try:
+			regex 		= r'videoUrl = \"(.*?)\"\;'
+			soup 		= BeautifulSoup(response.text, 'html.parser')
+			urlJS 		= soup.find_all('script')[4].contents[0]
+			urlVid 		= re.findall(regex, urlJS)[0]
 
-	except IndexError:
-		return(None)
+			ddlURL 		= f"{host}{urlVid}"
+
+			response 	= requests.get(ddlURL,
+				headers = HEADERS,
+				cookies = COOKIES,
+				# proxies = {
+				# 	'http': '127.0.0.1:8080',
+				# 	'https': '127.0.0.1:8080',
+				# },
+				# verify 	= False,
+				# # allow_redirects = False,
+			)
+
+			downloadURL	= json.loads(response.text)['url']
+			if debug: print({videoName: downloadURL}); print()
+			return({videoName: downloadURL})
+
+		except IndexError:
+			return(None)
+
+	elif "/download?playlist_id=" in vidURLs:
+		print(f"{red}[!] PDF/ZIP file detected, please download it directly from here: {green}{vidURLs}{white}")
 
 def createCourseDirectory(name):
 	"""
@@ -257,9 +262,10 @@ def main():
 
 		# for urls, names in zip(playlistURL, playlstName):
 		# 	returnVideoDownloadLink(host, urls, names)
-			# break
+		# 	# break
 
 		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
+		print()
 		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
 			for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
 				if debug: print(results)
@@ -276,7 +282,7 @@ def main():
 				downloadVideos(vidName, downloadLink, dirName)
 
 	else:
-		print(f"[!] {red}Course not found! Please course ID again{white}")
+		print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
 
 if __name__ == '__main__':
 	try:
