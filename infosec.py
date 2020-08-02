@@ -1,14 +1,15 @@
-from bs4 import BeautifulSoup
 import requests
 import json
 import urllib3
 import re
 import concurrent.futures
 import os
+from bs4 import BeautifulSoup
+from sys import argv
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-HEADERS 		= {
+HEADERS = {
 	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36",
 	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 	"Referer": "https://flex.infosecinstitute.com/portal/register",
@@ -17,7 +18,7 @@ HEADERS 		= {
 	"Connection": "close",
 }
 
-COOKIES 		= {
+COOKIES = {
 	"flexcenter": '',
 }
 
@@ -30,6 +31,10 @@ yellow 	= "\033[0;33m"
 magenta = "\033[0;35m"
 
 bar 	= "-" * 150
+debug 	= False
+
+if (len(argv) >= 2):
+	if argv[1] == '-d': debug = True
 
 def login(loginURL, username, password):
 	"""
@@ -53,7 +58,7 @@ def login(loginURL, username, password):
 	)
 
 	flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]
-	# print(flexcenter)
+	if debug: print(f"[#] Cookies: {flexcenter}")
 	return(flexcenter)
 
 def fetchCourseLinks(url):
@@ -91,6 +96,7 @@ def parseCourseLinks(body):
 		for objs, vidNumber in zip(children, range(1, len(children) + 1)):
 			urls[f"{vidNumber:02d}_{objs['name']}"] = objs['item_url']
 
+		if debug: print(urls)
 		return(urls)
 
 	except KeyError:
@@ -107,7 +113,7 @@ def parseCourseLinks(body):
 				urls[f"{vidNumber:03d}_{name}"] = url
 				vidNumber += 1
 
-		# print(urls)
+		if debug: print(urls)
 		return(urls)
 
 def fetchCourses():
@@ -142,16 +148,18 @@ def fetchCourses():
 
 			data[courseId] = {'url': courseURL, 'name': courseName}
 
+		vals 	= json.loads(json.dumps(data, sort_keys=True))
+		for cid in vals.items():
 			print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
-				yellow, courseId, white,
-				magenta, courseURL, white,
-				cyan, courseName, white,
+				yellow, cid[0], white,
+				magenta, cid[1]['url'], white,
+				cyan, cid[1]['name'], white,
 			))
 
 		print(bar)
 
-	# print(json.dumps(data, indent=4, default=str))
-	return(data)
+		if debug: print(json.dumps(data, indent=4, default=str))
+		return(data)
 
 def returnVideoDownloadLink(host, vidURLs, videoName):
 	"""
@@ -187,7 +195,7 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		)
 
 		downloadURL	= json.loads(response.text)['url']
-		# print({videoName: downloadURL})
+		if debug: print({videoName: downloadURL})
 		return({videoName: downloadURL})
 
 	except IndexError:
@@ -210,7 +218,7 @@ def downloadVideos(vidName, downloadLink, dirName):
 	"""
 	vidName 	= vidName.replace('/', '').replace(',', '').replace('"', '').replace("'", '').replace(' ', '_')
 	command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{dirName}/{vidName}.mp4' -c"
-	print(f"\n{command}")
+	print(f"\n{magenta}{command}{white}")
 	os.system(command)
 
 def main():
@@ -254,8 +262,11 @@ def main():
 		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
 		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
 			for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
+				if debug: print(results)
 				if results != None:
 					ddlURLs.append(results)
+
+		print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
 
 		with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
 
