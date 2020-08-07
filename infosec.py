@@ -229,7 +229,7 @@ def downloadVideos(vidName, downloadLink, dirName):
 def main():
 	ddlURLs 	= []
 	host 		= "https://flex.infosecinstitute.com"
-	loginURL 	= "https://flex.infosecinstitute.com/portal/login"
+	loginURL 	= "https://app.infosecinstitute.com/portal/login"
 
 	username 	= ""
 	password 	= ""
