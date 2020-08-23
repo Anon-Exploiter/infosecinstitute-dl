@@ -2,8 +2,15 @@
 
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/cloudposse.svg?style=social&label=Follow%20%40syed_umar)](https://twitter.com/syed__umar)
+![GitHub](https://img.shields.io/github/license/Anon-Exploiter/infosecinstitute-dl)
+[![Contributors][contributors-shield]][contributors-url]
+![GitHub closed issues](https://img.shields.io/github/issues-closed/Anon-Exploiter/infosecinstitute-dl)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/cloudposse.svg?style=social&label=%40syed_umar)](https://twitter.com/syed__umar)
 
+[contributors-shield]: https://img.shields.io/github/contributors/Anon-Exploiter/infosecinstitute-dl.svg?style=flat-square
+[contributors-url]: https://github.com/Anon-Exploiter/infosecinstitute-dl/graphs/contributors
+[issues-shield]: https://img.shields.io/github/issues/Anon-Exploiter/infosecinstitute-dl.svg?style=flat-square
+[issues-url]: https://github.com/Anon-Exploiter/infosecinstitute-dl/issues
 
 A small and dirty python3 based script to download courses from InfosecInstitute.
 
