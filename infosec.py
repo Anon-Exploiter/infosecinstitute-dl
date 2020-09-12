@@ -147,7 +147,7 @@ def fetchCourses():
 
 			data[courseId] = {'url': courseURL, 'name': courseName}
 
-		vals 	= json.loads(json.dumps(data, sort_keys=True))
+		vals 	= json.loads(json.dumps(data)) #, sort_keys=True))
 		for cid in vals.items():
 			print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
 				yellow, cid[0], white,
@@ -164,6 +164,8 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 	"""
 	Returns S3 bucket's DDL for videos
 	"""
+
+	print(yellow, videoName, blue, vidURLs, white)
 
 	if not("/download?playlist_id=" in vidURLs):
 		response 	= requests.get(vidURLs,
@@ -200,7 +202,22 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 			return(None)
 
 	elif "/download?playlist_id=" in vidURLs:
-		print(f"{red}[!] PDF/ZIP file detected, please download it directly from here: {green}{vidURLs}{white}")
+		print(f"{blue}[!] PDF/ZIP file detected, downloading it: {green}{vidURLs}{white}")
+		videoName += "isPDF"
+
+		response 	= requests.get(vidURLs,
+			headers = HEADERS,
+			cookies = COOKIES,
+			allow_redirects = False,
+			# proxies = {
+			# 	'http': '127.0.0.1:8080',
+			# 	'https': '127.0.0.1:8080',
+			# },
+			# verify 	= False
+		)
+
+		ddl 	= response.headers['Location']
+		return({videoName: ddl})
 
 def createCourseDirectory(name):
 	"""
@@ -218,8 +235,25 @@ def downloadVideos(vidName, downloadLink, dirName):
 	For downloading with aria2c
 	"""
 	vidName 	= vidName.replace('/', '').replace(',', '').replace('"', '').replace("'", '').replace(' ', '_')
-	command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{dirName}/{vidName}.mp4' -c"
-	print(f"\n{magenta}{command}{white}")
+	fileName 	= f'{dirName}/{vidName}.mp4'
+
+	if os.path.isfile(fileName) and not(os.path.isfile(f"{fileName}.aria2")):
+		print(f'{green}[#] {fileName} already exists!{white}')
+		command = ""
+
+	elif "isPDF" in vidName:
+		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -d '{dirName}' -c"
+		# print(command)
+
+	else:
+		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{fileName}' -c"
+		# print(f"\n{magenta}{command}{white}")
+		# os.system(command)
+		# print(command)
+
+	return(command)
+
+def runCommand(command):
 	os.system(command)
 
 def main():
@@ -252,6 +286,8 @@ def main():
 
 		playlstName = []
 		playlistURL	= []
+		ddlURLs 	= []
+		commands 	= []
 
 		for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
 		for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
@@ -262,7 +298,7 @@ def main():
 
 		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
 		print()
-		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
+		with concurrent.futures.ProcessPoolExecutor(max_workers = 50) as executor:
 			for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
 				if debug: print(results)
 				if results != None:
@@ -270,12 +306,19 @@ def main():
 
 		print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
 
-		with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
+		# with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
 
-		print(f"\n{green}[*] Starting downloading of videos")
+		print(f"\n{green}[*] Creating commands for downloading ...")
 		for urls in ddlURLs:
 			for vidName, downloadLink in urls.items():
-				downloadVideos(vidName, downloadLink, dirName)
+				c 	= downloadVideos(vidName, downloadLink, dirName)
+				commands.append(c)
+
+
+		print(f"\n{yellow}[&] Starting downloading ...{white}")
+
+		with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
+			executor.map(runCommand, commands)
 
 	else:
 		print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
