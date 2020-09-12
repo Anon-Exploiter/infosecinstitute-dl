@@ -4,7 +4,6 @@ import urllib3
 import re
 import concurrent.futures
 import os
-from bs4 import BeautifulSoup
 from sys import argv
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -178,11 +177,8 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		)
 
 		try:
-			regex 		= r'videoUrl = \"(.*?)\"\;'
-			soup 		= BeautifulSoup(response.text, 'html.parser')
-			urlJS 		= soup.find_all('script')[4].contents[0]
-			urlVid 		= re.findall(regex, urlJS)[0]
-
+			regex 		= r'const\svideoUrl\s=\s"(.*?)";'
+			urlVid 		= re.findall(regex, response.text)[0]
 			ddlURL 		= f"{host}{urlVid}"
 
 			response 	= requests.get(ddlURL,
