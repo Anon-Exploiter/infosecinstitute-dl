@@ -53,5 +53,7 @@ python3 infosec.py -d
 ### Changelog
 | Changes                                                                                                   | Release                                             |
 | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Fixed login issue; changed email to username														        | 0.3 - 25-10-2020                                    |
 | Lists all the courses, user will pass userID, will create folder name and will store all vids there       | 0.2 - 27-07-2020                                    |
 | Initial release containing infosec.py & downloader.py -> Requires manual intervention                     | 0.1 - 26-07-2020                                    |
+
