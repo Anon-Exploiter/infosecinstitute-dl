@@ -43,7 +43,7 @@ def login(loginURL, username, password):
 		headers = HEADERS,
 		data 	= {
 			'_method': 'POST',
-			'email': username,
+			'username': username,
 			'password': password,
 			'remember_me': 1,
 			'_Token[unlocked]': '',
