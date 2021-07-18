@@ -52,11 +52,11 @@ def login(loginURL, username, password):
 			'remember_me': 1,
 			'_Token[unlocked]': '',
 		},
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False,
+		proxies = {
+			'http': '192.168.100.47:8080',
+			'https': '192.168.100.47:8080',
+		},
+		verify 	= False,
 		allow_redirects = False,
 	)
 
@@ -75,11 +75,11 @@ def fetchCourseLinks(url):
 	response 	= requests.get(url,
 		headers = HEADERS,
 		cookies = COOKIES,
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False
+		proxies = {
+			'http': '192.168.100.47:8080',
+			'https': '192.168.100.47:8080',
+		},
+		verify 	= False
 	)
 
 	if response.status_code == 200:
@@ -136,11 +136,11 @@ def fetchCourses():
 	response 	= requests.get(pagesURL,
 		headers = HEADERS,
 		cookies = COOKIES,
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False
+		proxies = {
+			'http': '192.168.100.47:8080',
+			'https': '192.168.100.47:8080',
+		},
+		verify 	= False
 	)
 
 	if response.status_code == 200:
@@ -186,11 +186,11 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		video_txt 	= requests.get(redirect_url,
 			headers = HEADERS,
 			cookies = COOKIES,
-			# proxies = {
-			# 	'http': '127.0.0.1:8080',
-			# 	'https': '127.0.0.1:8080',
-			# },
-			# verify 	= False
+			proxies = {
+				'http': '192.168.100.47:8080',
+				'https': '192.168.100.47:8080',
+			},
+			verify 	= False
 		)
 
 		video_json_obj = json.loads(video_txt.text)
@@ -200,11 +200,11 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 				requests.get(API_HOST + video_json_url,
 				headers = HEADERS,
 				cookies = COOKIES,
-				# proxies = {
-				# 	'http': '127.0.0.1:8080',
-				# 	'https': '127.0.0.1:8080',
-				# },
-				# verify 	= False
+				proxies = {
+					'http': '192.168.100.47:8080',
+					'https': '192.168.100.47:8080',
+				},
+				verify 	= False
 			).text
 		).get('url')
 
