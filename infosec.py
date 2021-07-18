@@ -21,6 +21,8 @@ COOKIES = {
 	"flexcenter": '',
 }
 
+API_HOST = 'https://app.infosecinstitute.com'
+
 cyan 	= "\033[0;96m"
 green 	= "\033[0;92m"
 white 	= "\033[0;97m"
@@ -32,8 +34,10 @@ magenta = "\033[0;35m"
 bar 	= "-" * 150
 debug 	= False
 
+
 if (len(argv) >= 2):
 	if argv[1] == '-d': debug = True
+
 
 def login(loginURL, username, password):
 	"""
@@ -60,6 +64,7 @@ def login(loginURL, username, password):
 	if debug: print(f"[#] Cookies: {flexcenter}")
 	return(flexcenter)
 
+
 def fetchCourseLinks(url):
 	"""
 	Fetches videos URLs
@@ -81,6 +86,7 @@ def fetchCourseLinks(url):
 		return(response.text)
 
 	print("[#] Error: ", response.status_code, response.headers, response.text)
+
 
 def parseCourseLinks(body):
 	"""
@@ -114,6 +120,7 @@ def parseCourseLinks(body):
 
 		if debug: print(urls)
 		return(urls)
+
 
 def fetchCourses():
 	print(bar)
@@ -160,6 +167,7 @@ def fetchCourses():
 		if debug: print(json.dumps(data, indent=4, default=str))
 		return(data)
 
+
 def returnVideoDownloadLink(host, vidURLs, videoName):
 	"""
 	Returns S3 bucket's DDL for videos
@@ -167,8 +175,15 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 
 	print(yellow, videoName, blue, vidURLs, white)
 
-	if not("/download?playlist_id=" in vidURLs):
-		response 	= requests.get(vidURLs,
+	response 	= requests.get(vidURLs,
+		headers = HEADERS,
+		cookies = COOKIES,
+	)
+
+	if "/portal/skills/path" in response.url:
+		redirect_url = response.url.replace('/portal/skills/path', '/portal/api/skills/path')
+		
+		video_txt 	= requests.get(redirect_url,
 			headers = HEADERS,
 			cookies = COOKIES,
 			# proxies = {
@@ -178,46 +193,24 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 			# verify 	= False
 		)
 
-		try:
-			regex 		= r'const\svideoUrl\s=\s"(.*?)";'
-			urlVid 		= re.findall(regex, response.text)[0]
-			ddlURL 		= f"{host}{urlVid}"
+		video_json_obj = json.loads(video_txt.text)
+		video_json_url = video_json_obj.get('video_url')
 
-			response 	= requests.get(ddlURL,
+		video_url 	= json.loads(
+				requests.get(API_HOST + video_json_url,
 				headers = HEADERS,
 				cookies = COOKIES,
 				# proxies = {
 				# 	'http': '127.0.0.1:8080',
 				# 	'https': '127.0.0.1:8080',
 				# },
-				# verify 	= False,
-				# # allow_redirects = False,
-			)
+				# verify 	= False
+			).text
+		).get('url')
 
-			downloadURL	= json.loads(response.text)['url']
-			if debug: print({videoName: downloadURL}); print()
-			return({videoName: downloadURL})
+		if debug: print({videoName: video_url}); print()
+		return({videoName: video_url})
 
-		except IndexError:
-			return(None)
-
-	elif "/download?playlist_id=" in vidURLs:
-		print(f"{blue}[!] PDF/ZIP file detected, downloading it: {green}{vidURLs}{white}")
-		videoName += "isPDF"
-
-		response 	= requests.get(vidURLs,
-			headers = HEADERS,
-			cookies = COOKIES,
-			allow_redirects = False,
-			# proxies = {
-			# 	'http': '127.0.0.1:8080',
-			# 	'https': '127.0.0.1:8080',
-			# },
-			# verify 	= False
-		)
-
-		ddl 	= response.headers['Location']
-		return({videoName: ddl})
 
 def createCourseDirectory(name):
 	"""
@@ -229,6 +222,7 @@ def createCourseDirectory(name):
 
 	if not(os.path.isdir(courseDir)):
 		os.mkdir(courseDir)
+
 
 def downloadVideos(vidName, downloadLink, dirName):
 	"""
@@ -253,8 +247,10 @@ def downloadVideos(vidName, downloadLink, dirName):
 
 	return(command)
 
+
 def runCommand(command):
 	os.system(command)
+
 
 def main():
 	ddlURLs 	= []
@@ -269,7 +265,7 @@ def main():
 	COOKIES['flexcenter'] 	= cookies
 
 	courses 	= fetchCourses()
-	userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 25): "))
+	userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 57): "))
 
 	if userInput in courses:
 		print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
@@ -298,7 +294,7 @@ def main():
 
 		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
 		print()
-		with concurrent.futures.ProcessPoolExecutor(max_workers = 50) as executor:
+		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
 			for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
 				if debug: print(results)
 				if results != None:
@@ -323,8 +319,10 @@ def main():
 	else:
 		print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
 
+
 if __name__ == '__main__':
 	try:
 		main()
+
 	except KeyboardInterrupt:
 		print("[!] Okay-sed :(")
