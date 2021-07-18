@@ -52,11 +52,6 @@ def login(loginURL, username, password):
 			'remember_me': 1,
 			'_Token[unlocked]': '',
 		},
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False,
 		allow_redirects = False,
 	)
 
@@ -75,11 +70,6 @@ def fetchCourseLinks(url):
 	response 	= requests.get(url,
 		headers = HEADERS,
 		cookies = COOKIES,
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False
 	)
 
 	if response.status_code == 200:
@@ -132,15 +122,11 @@ def fetchCourses():
 	print(bar)
 
 	data 		= {}
-	pagesURL 	= "https://flex.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=10000" 	# Fetches JSON containing all courses details/links
+	pagesURL 	= "https://flex.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=10000"
+
 	response 	= requests.get(pagesURL,
 		headers = HEADERS,
 		cookies = COOKIES,
-		# proxies = {
-		# 	'http': '127.0.0.1:8080',
-		# 	'https': '127.0.0.1:8080',
-		# },
-		# verify 	= False
 	)
 
 	if response.status_code == 200:
@@ -186,11 +172,6 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 		video_txt 	= requests.get(redirect_url,
 			headers = HEADERS,
 			cookies = COOKIES,
-			# proxies = {
-			# 	'http': '127.0.0.1:8080',
-			# 	'https': '127.0.0.1:8080',
-			# },
-			# verify 	= False
 		)
 
 		video_json_obj = json.loads(video_txt.text)
@@ -200,11 +181,6 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 				requests.get(API_HOST + video_json_url,
 				headers = HEADERS,
 				cookies = COOKIES,
-				# proxies = {
-				# 	'http': '127.0.0.1:8080',
-				# 	'https': '127.0.0.1:8080',
-				# },
-				# verify 	= False
 			).text
 		).get('url')
 
@@ -237,13 +213,9 @@ def downloadVideos(vidName, downloadLink, dirName):
 
 	elif "isPDF" in vidName:
 		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -d '{dirName}' -c"
-		# print(command)
 
 	else:
 		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{fileName}' -c"
-		# print(f"\n{magenta}{command}{white}")
-		# os.system(command)
-		# print(command)
 
 	return(command)
 
@@ -288,10 +260,6 @@ def main():
 		for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
 		for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
 
-		# for urls, names in zip(playlistURL, playlstName):
-		# 	returnVideoDownloadLink(host, urls, names)
-		# 	# break
-
 		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
 		print()
 		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
@@ -301,8 +269,6 @@ def main():
 					ddlURLs.append(results)
 
 		print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
-
-		# with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
 
 		print(f"\n{green}[*] Creating commands for downloading ...")
 		for urls in ddlURLs:
