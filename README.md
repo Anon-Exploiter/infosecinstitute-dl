@@ -37,7 +37,6 @@ def main():
 ### Requirements
 - aria2
 - python3
-- python3-bs4
 - python3-requests
 
 ### Tested On
