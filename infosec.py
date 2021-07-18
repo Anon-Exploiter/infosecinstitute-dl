@@ -160,31 +160,48 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 
 	print(yellow, videoName, blue, vidURLs, white)
 
-	response 	= requests.get(vidURLs,
-		headers = HEADERS,
-		cookies = COOKIES,
-	)
+	if "/portal/portal-course/" in vidURLs: # Downloadable bins/pdfs from infosec's server
+		response 	= requests.get(vidURLs,
+			headers = HEADERS,
+			cookies = COOKIES,
+			allow_redirects = False,
+		)
 
-	if "/portal/skills/path" in response.url:
+		if debug: print({videoName: response.url}); print()
+		return({videoName: response.url})
+
+	elif "/portal/documents/skills/" in vidURLs: # Only viewable PDFs from llviewerg
+		pass
+
+	elif "/lab/" in vidURLs: # Skip the labs
+		pass
+
+	else:
+		response 	= requests.get(vidURLs,
+			headers = HEADERS,
+			cookies = COOKIES,
+		)
+
 		redirect_url = response.url.replace('/portal/skills/path', '/portal/api/skills/path')
 		
 		video_txt 	= requests.get(redirect_url,
 			headers = HEADERS,
 			cookies = COOKIES,
+			allow_redirects = False
 		)
 
-		video_json_obj = json.loads(video_txt.text)
-		video_json_url = video_json_obj.get('video_url')
+		video_json_url = json.loads(video_txt.text).get('video_url')
 
-		video_url 	= json.loads(
-				requests.get(API_HOST + video_json_url,
-				headers = HEADERS,
-				cookies = COOKIES,
-			).text
-		).get('url')
+		video_url = requests.get(API_HOST + video_json_url,
+			headers = HEADERS,
+			cookies = COOKIES,
+			allow_redirects = False
+		)
 
-		if debug: print({videoName: video_url}); print()
-		return({videoName: video_url})
+		ddl = json.loads(video_url.text).get('url')
+
+		if debug: print({videoName: ddl}); print()
+		return({videoName: ddl})
 
 
 def createCourseDirectory(name):
