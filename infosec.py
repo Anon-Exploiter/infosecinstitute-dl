@@ -56,7 +56,6 @@ def login(loginURL, username, password):
 	)
 
 	flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]
-	if debug: print(f"[#] Cookies: {flexcenter}")
 	return(flexcenter)
 
 
