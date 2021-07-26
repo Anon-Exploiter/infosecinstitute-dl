@@ -52,12 +52,12 @@ def login(loginURL, username, password):
 			'remember_me': 1,
 			'_Token[unlocked]': '',
 		},
+		allow_redirects = False,
 		proxies = {
 			'http': '192.168.100.47:8080',
 			'https': '192.168.100.47:8080',
 		},
 		verify 	= False,
-		allow_redirects = False,
 	)
 
 	flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]
@@ -79,7 +79,7 @@ def fetchCourseLinks(url):
 			'http': '192.168.100.47:8080',
 			'https': '192.168.100.47:8080',
 		},
-		verify 	= False
+		verify 	= False,
 	)
 
 	if response.status_code == 200:
@@ -132,7 +132,8 @@ def fetchCourses():
 	print(bar)
 
 	data 		= {}
-	pagesURL 	= "https://flex.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=10000" 	# Fetches JSON containing all courses details/links
+	pagesURL 	= "https://flex.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=10000"
+
 	response 	= requests.get(pagesURL,
 		headers = HEADERS,
 		cookies = COOKIES,
@@ -140,7 +141,7 @@ def fetchCourses():
 			'http': '192.168.100.47:8080',
 			'https': '192.168.100.47:8080',
 		},
-		verify 	= False
+		verify 	= False,
 	)
 
 	if response.status_code == 200:
@@ -175,41 +176,68 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
 
 	print(yellow, videoName, blue, vidURLs, white)
 
-	response 	= requests.get(vidURLs,
-		headers = HEADERS,
-		cookies = COOKIES,
-	)
+	if "/portal/portal-course/" in vidURLs: # Downloadable bins/pdfs from infosec's server
+		response 	= requests.get(vidURLs,
+			headers = HEADERS,
+			cookies = COOKIES,
+			allow_redirects = False,
+			proxies = {
+				'http': '192.168.100.47:8080',
+				'https': '192.168.100.47:8080',
+			},
+			verify 	= False,
+		)
 
-	if "/portal/skills/path" in response.url:
-		redirect_url = response.url.replace('/portal/skills/path', '/portal/api/skills/path')
-		
-		video_txt 	= requests.get(redirect_url,
+		if debug: print({videoName: response.url}); print()
+		return({videoName: response.url})
+
+	elif "/portal/documents/skills/" in vidURLs: # Only viewable PDFs from llviewerg
+		pass
+
+	elif "/lab/" in vidURLs: # Skip the labs
+		pass
+
+	else:
+		response 	= requests.get(vidURLs,
 			headers = HEADERS,
 			cookies = COOKIES,
 			proxies = {
 				'http': '192.168.100.47:8080',
 				'https': '192.168.100.47:8080',
 			},
-			verify 	= False
+			verify 	= False,
 		)
 
-		video_json_obj = json.loads(video_txt.text)
-		video_json_url = video_json_obj.get('video_url')
+		redirect_url = response.url.replace('/portal/skills/path', '/portal/api/skills/path')
+		
+		video_txt 	= requests.get(redirect_url,
+			headers = HEADERS,
+			cookies = COOKIES,
+			allow_redirects = False,
+			proxies = {
+				'http': '192.168.100.47:8080',
+				'https': '192.168.100.47:8080',
+			},
+			verify 	= False,
+		)
 
-		video_url 	= json.loads(
-				requests.get(API_HOST + video_json_url,
-				headers = HEADERS,
-				cookies = COOKIES,
-				proxies = {
-					'http': '192.168.100.47:8080',
-					'https': '192.168.100.47:8080',
-				},
-				verify 	= False
-			).text
-		).get('url')
+		video_json_url = json.loads(video_txt.text).get('video_url')
 
-		if debug: print({videoName: video_url}); print()
-		return({videoName: video_url})
+		video_url = requests.get(API_HOST + video_json_url,
+			headers = HEADERS,
+			cookies = COOKIES,
+			allow_redirects = False,
+			proxies = {
+				'http': '192.168.100.47:8080',
+				'https': '192.168.100.47:8080',
+			},
+			verify 	= False,
+		)
+
+		ddl = json.loads(video_url.text).get('url')
+
+		if debug: print({videoName: ddl}); print()
+		return({videoName: ddl})
 
 
 def createCourseDirectory(name):
@@ -237,13 +265,9 @@ def downloadVideos(vidName, downloadLink, dirName):
 
 	elif "isPDF" in vidName:
 		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -d '{dirName}' -c"
-		# print(command)
 
 	else:
 		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{fileName}' -c"
-		# print(f"\n{magenta}{command}{white}")
-		# os.system(command)
-		# print(command)
 
 	return(command)
 
@@ -288,10 +312,6 @@ def main():
 		for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
 		for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
 
-		# for urls, names in zip(playlistURL, playlstName):
-		# 	returnVideoDownloadLink(host, urls, names)
-		# 	# break
-
 		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
 		print()
 		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
@@ -301,8 +321,6 @@ def main():
 					ddlURLs.append(results)
 
 		print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
-
-		# with open('downloads.json', 'w+') as f: f.write(json.dumps(ddlURLs, indent=4, default=str))
 
 		print(f"\n{green}[*] Creating commands for downloading ...")
 		for urls in ddlURLs:
