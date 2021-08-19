@@ -12,7 +12,7 @@
 [issues-shield]: https://img.shields.io/github/issues/Anon-Exploiter/infosecinstitute-dl.svg?style=flat-square
 [issues-url]: https://github.com/Anon-Exploiter/infosecinstitute-dl/issues
 
-A small and dirty python3 based script to download courses from InfosecInstitute.
+A small and dirty python based script to download courses from InfosecInstitute.
 
 [![asciicast](https://asciinema.org/a/350800.svg)](https://asciinema.org/a/350800)
 
@@ -43,6 +43,7 @@ def main():
 - Ubuntu 18.04 LTS
 - Pop! OS 18.04 LTS
 - ~Windows~
+- ~Mac OS~ (it doesn't work on Mac OS atm)
 
 ### Features
 - Lists all courses
