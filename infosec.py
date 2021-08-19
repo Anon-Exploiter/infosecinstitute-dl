@@ -1,7 +1,6 @@
 import requests
 import json
 import urllib3
-import re
 import concurrent.futures
 import os
 from sys import argv
@@ -174,7 +173,7 @@ def fetchCourses():
     return(data)
 
 
-def returnVideoDownloadLink(host, vidURLs, videoName):
+def returnVideoDownloadLink(vidURLs, videoName):
     """
     Returns S3 bucket's DDL for videos
     """
@@ -266,20 +265,20 @@ def runCommand(command):
 
 def main():
     ddlURLs 	= []
-    host 		= "https://flex.infosecinstitute.com"
     loginURL 	= "https://app.infosecinstitute.com/portal/login"
 
 	username 	= ""
 	password 	= ""
 
     if username == '' and password == '': exit("[!] Please edit and rerun the script with credentials")
+
     cookies 				= login(loginURL, username, password)
     COOKIES['flexcenter'] 	= cookies
 
     courses 	= fetchCourses()
     userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 57): "))
 
-    if True:
+    if userInput in courses:
         print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
         print(f"[$] URL: {yellow}{courses[userInput]['url']}{white}")
 
@@ -303,7 +302,7 @@ def main():
         print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
         print()
         with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
-            for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
+            for results in executor.map(returnVideoDownloadLink, playlistURL, playlstName):
                 if results != None:
                     ddlURLs.append(results)
 
@@ -314,7 +313,6 @@ def main():
             for vidName, downloadLink in urls.items():
                 c 	= downloadVideos(vidName, downloadLink, dirName)
                 commands.append(c)
-
 
         print(f"\n{yellow}[&] Starting downloading ...{white}")
 
