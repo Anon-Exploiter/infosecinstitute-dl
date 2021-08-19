@@ -11,14 +11,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 HEADERS = {
 	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36",
 	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-	"Referer": "https://flex.infosecinstitute.com/portal/register",
-	"Accept-Encoding": "gzip, deflate",
-	"Accept-Language": "en-US,en;q=0.9,la;q=0.8",
-	"Connection": "close",
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "Referer": "https://flex.infosecinstitute.com/portal/register",
+    "Accept-Encoding": "gzip, deflate",
+    "Accept-Language": "en-US,en;q=0.9,la;q=0.8",
+    "Connection": "close",
 }
 
 COOKIES = {
-	"flexcenter": '',
+    "flexcenter": '',
 }
 
 API_HOST = 'https://app.infosecinstitute.com'
@@ -36,275 +38,276 @@ debug 	= False
 
 
 if (len(argv) >= 2):
-	if argv[1] == '-d': debug = True
+    if argv[1] == '-d': debug = True
 
 
 def login(loginURL, username, password):
-	"""
-	Returns only the required cookie (i.e. flexcenter)
-	"""
-	response 	= requests.post(loginURL,
-		headers = HEADERS,
-		data 	= {
-			'_method': 'POST',
-			'username': username,
-			'password': password,
-			'remember_me': 1,
-			'_Token[unlocked]': '',
-		},
-		allow_redirects = False,
-	)
+    """
+    Returns only the required cookie (i.e. flexcenter)
+    """
+    response 	= requests.post(loginURL,
+        headers = HEADERS,
+        data 	= {
+            '_method': 'POST',
+            'username': username,
+            'password': password,
+            'remember_me': 1,
+            '_Token[unlocked]': '',
+        },
+        allow_redirects = False,
+    )
 
-	flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]
-	return(flexcenter)
+    flexcenter 	= response.headers['Set-Cookie'].split(";")[0].split("=")[1]
+    return(flexcenter)
 
 
 def fetchCourseLinks(url):
-	"""
-	Fetches videos URLs
-	"""
+    """
+    Fetches videos URLs
+    """
 
-	url 		= url.replace('/portal/', '/portal/api/')
+    url 		= url.replace('/portal/', '/portal/api/')
 
-	response 	= requests.get(url,
-		headers = HEADERS,
-		cookies = COOKIES,
-	)
+    response 	= requests.get(url,
+        headers = HEADERS,
+        cookies = COOKIES,
+    )
 
-	if response.status_code == 200:
-		return(response.text)
+    if response.status_code == 200:
+        return(response.text)
 
-	print("[#] Error: ", response.status_code, response.headers, response.text)
+    print("[#] Error: ", response.status_code, response.headers, response.text)
 
 
 def parseCourseLinks(body):
-	"""
-	Returns Course's videos links in a list
-	"""
+    """
+    Returns Course's videos links in a list
+    """
 
-	try:
-		urls 		= {}
-		children 	= json.loads(body)
-		children 	= children['playlist']['children']
+    try:
+        urls 		= {}
+        children 	= json.loads(body)
+        children 	= children['playlist']['children']
 
-		for objs, vidNumber in zip(children, range(1, len(children) + 1)):
-			urls[f"{vidNumber:02d}_{objs['name']}"] = objs['item_url']
+        for objs, vidNumber in zip(children, range(1, len(children) + 1)):
+            urls[f"{vidNumber:02d}_{objs['name']}"] = objs['item_url']
 
-		if debug: print(urls)
-		return(urls)
+        if debug: print(urls)
+        return(urls)
 
-	except KeyError:
-		urls 			= {}
-		data 			= json.loads(body)
-		childrenNodes 	= data['data']['playlist']['children']
-		vidNumber		= 1
+    except KeyError:
+        urls 			= {}
+        data 			= json.loads(body)
+        childrenNodes 	= data['data']['playlist']['children']
+        vidNumber		= 1
 
-		for items in childrenNodes:
-			for singleChildren in items['children']:
-				name 	= singleChildren['name']
-				url 	= singleChildren['item_url']
+        for items in childrenNodes:
+            for singleChildren in items['children']:
+                name 	= singleChildren['name']
+                url 	= singleChildren['item_url']
 
-				urls[f"{vidNumber:03d}_{name}"] = url
-				vidNumber += 1
+                urls[f"{vidNumber:03d}_{name}"] = url
+                vidNumber += 1
 
-		if debug: print(urls)
-		return(urls)
+        if debug: print(urls)
+        return(urls)
 
 
 def fetchCourses():
-	print(bar)
-	print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
-		yellow, "ID", white,
-		magenta, "Course URL", white,
-		cyan, "Course Name", white,
-	))
-	print(bar)
+    print(bar)
+    print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
+        yellow, "ID", white,
+        magenta, "Course URL", white,
+        cyan, "Course Name", white,
+    ))
+    print(bar)
 
-	data 		= {}
-	pagesURL 	= "https://flex.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=10000"
+    data 		= {}
+    pagesURL 	= "https://app.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=100"
 
-	response 	= requests.get(pagesURL,
-		headers = HEADERS,
-		cookies = COOKIES,
-	)
+    response 	= requests.get(pagesURL,
+        headers = HEADERS,
+        cookies = COOKIES,
+    )
 
-	if response.status_code == 200:
-		jsonData 	= json.loads(response.text)
-		jsonItems 	= jsonData['items']
+    if response.status_code == 200:
+        jsonData 	= json.loads(response.text)
+        jsonItems 	= jsonData['items']
 
-		for objs in jsonItems:
-			courseId 	= objs['id']
-			courseName 	= objs['name']
-			courseURL 	= objs['item_url']
+        for objs in jsonItems:
+            courseId 	= objs['id']
+            courseName 	= objs['name']
+            courseURL 	= objs['item_url']
 
-			data[courseId] = {'url': courseURL, 'name': courseName}
+            data[courseId] = {'url': courseURL, 'name': courseName}
 
-		vals 	= json.loads(json.dumps(data)) #, sort_keys=True))
-		for cid in vals.items():
-			print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
-				yellow, cid[0], white,
-				magenta, cid[1]['url'], white,
-				cyan, cid[1]['name'], white,
-			))
+        vals 	= json.loads(json.dumps(data)) #, sort_keys=True))
+        for cid in vals.items():
+            print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
+                yellow, cid[0], white,
+                magenta, cid[1]['url'], white,
+                cyan, cid[1]['name'], white,
+            ))
 
-		print(bar)
+        print(bar)
+        print(len(data))
 
-		if debug: print(json.dumps(data, indent=4, default=str))
-		return(data)
+        if debug: print(json.dumps(data, indent=4, default=str))
+        return(data)
 
 
 def returnVideoDownloadLink(host, vidURLs, videoName):
-	"""
-	Returns S3 bucket's DDL for videos
-	"""
+    """
+    Returns S3 bucket's DDL for videos
+    """
 
-	print(yellow, videoName, blue, vidURLs, white)
+    print(yellow, videoName, blue, vidURLs, white)
 
-	if "/portal/portal-course/" in vidURLs: # Downloadable bins/pdfs from infosec's server
-		response 	= requests.get(vidURLs,
-			headers = HEADERS,
-			cookies = COOKIES,
-			allow_redirects = False,
-		)
+    if "/portal/portal-course/" in vidURLs: # Downloadable bins/pdfs from infosec's server
+        response 	= requests.get(vidURLs,
+            headers = HEADERS,
+            cookies = COOKIES,
+            allow_redirects = False,
+        )
 
-		if debug: print({videoName: response.url}); print()
-		return({videoName: response.url})
+        if debug: print({videoName: response.url}); print()
+        return({videoName: response.url})
 
-	elif "/portal/documents/skills/" in vidURLs: # Only viewable PDFs from llviewerg
-		pass
+    elif "/portal/documents/skills/" in vidURLs: # Only viewable PDFs from llviewerg
+        pass
 
-	elif "/lab/" in vidURLs: # Skip the labs
-		pass
+    elif "/lab/" in vidURLs: # Skip the labs
+        pass
 
-	else:
-		response 	= requests.get(vidURLs,
-			headers = HEADERS,
-			cookies = COOKIES,
-		)
+    else:
+        response 	= requests.get(vidURLs,
+            headers = HEADERS,
+            cookies = COOKIES,
+        )
 
-		redirect_url = response.url.replace('/portal/skills/path', '/portal/api/skills/path')
-		
-		video_txt 	= requests.get(redirect_url,
-			headers = HEADERS,
-			cookies = COOKIES,
-			allow_redirects = False
-		)
+        redirect_url = response.url.replace('/portal/skills/path', '/portal/api/skills/path')
+        
+        video_txt 	= requests.get(redirect_url,
+            headers = HEADERS,
+            cookies = COOKIES,
+            allow_redirects = False
+        )
 
-		video_json_url = json.loads(video_txt.text).get('video_url')
+        video_json_url = json.loads(video_txt.text).get('video_url')
 
-		video_url = requests.get(API_HOST + video_json_url,
-			headers = HEADERS,
-			cookies = COOKIES,
-			allow_redirects = False
-		)
+        video_url = requests.get(API_HOST + video_json_url,
+            headers = HEADERS,
+            cookies = COOKIES,
+            allow_redirects = False
+        )
 
-		ddl = json.loads(video_url.text).get('url')
+        ddl = json.loads(video_url.text).get('url')
 
-		if debug: print({videoName: ddl}); print()
-		return({videoName: ddl})
+        if debug: print({videoName: ddl}); print()
+        return({videoName: ddl})
 
 
 def createCourseDirectory(name):
-	"""
-	For creation of the course directory
-	"""
+    """
+    For creation of the course directory
+    """
 
-	path 		= os.getcwd()
-	courseDir	= os.path.join(path, name)
+    path 		= os.getcwd()
+    courseDir	= os.path.join(path, name)
 
-	if not(os.path.isdir(courseDir)):
-		os.mkdir(courseDir)
+    if not(os.path.isdir(courseDir)):
+        os.mkdir(courseDir)
 
 
 def downloadVideos(vidName, downloadLink, dirName):
-	"""
-	For downloading with aria2c
-	"""
-	vidName 	= vidName.replace('/', '').replace(',', '').replace('"', '').replace("'", '').replace(' ', '_')
-	fileName 	= f'{dirName}/{vidName}.mp4'
+    """
+    For downloading with aria2c
+    """
+    vidName 	= vidName.replace('/', '').replace(',', '').replace('"', '').replace("'", '').replace(' ', '_')
+    fileName 	= f'{dirName}/{vidName}.mp4'
 
-	if os.path.isfile(fileName) and not(os.path.isfile(f"{fileName}.aria2")):
-		print(f'{green}[#] {fileName} already exists!{white}')
-		command = ""
+    if os.path.isfile(fileName) and not(os.path.isfile(f"{fileName}.aria2")):
+        print(f'{green}[#] {fileName} already exists!{white}')
+        command = ""
 
-	elif "isPDF" in vidName:
-		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -d '{dirName}' -c"
+    elif "isPDF" in vidName:
+        command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -d '{dirName}' -c"
 
-	else:
-		command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{fileName}' -c"
+    else:
+        command 	= f"aria2c -s 10 -j 10 -x 16 -k 5M --file-allocation=none '{downloadLink}' -o '{fileName}' -c"
 
-	return(command)
+    return(command)
 
 
 def runCommand(command):
-	os.system(command)
+    os.system(command)
 
 
 def main():
-	ddlURLs 	= []
-	host 		= "https://flex.infosecinstitute.com"
-	loginURL 	= "https://app.infosecinstitute.com/portal/login"
+    ddlURLs 	= []
+    host 		= "https://flex.infosecinstitute.com"
+    loginURL 	= "https://app.infosecinstitute.com/portal/login"
 
 	username 	= ""
 	password 	= ""
 
-	if username == '' and password == '': exit("[!] Please edit and rerun the script with credentials")
-	cookies 				= login(loginURL, username, password)
-	COOKIES['flexcenter'] 	= cookies
+    if username == '' and password == '': exit("[!] Please edit and rerun the script with credentials")
+    cookies 				= login(loginURL, username, password)
+    COOKIES['flexcenter'] 	= cookies
 
-	courses 	= fetchCourses()
-	userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 57): "))
+    courses 	= fetchCourses()
+    userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 57): "))
 
-	if userInput in courses:
-		print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
-		print(f"[$] URL: {yellow}{courses[userInput]['url']}{white}")
+    if True:
+        print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
+        print(f"[$] URL: {yellow}{courses[userInput]['url']}{white}")
 
-		dirName 	= courses[userInput]['name'].replace('/', '').replace(',', '').replace('"', '').replace("'", '')
-		createCourseDirectory(dirName)
+        dirName 	= courses[userInput]['name'].replace('/', '').replace(',', '').replace('"', '').replace("'", '')
+        createCourseDirectory(dirName)
 
-		print(f"\n{cyan}[*] Fetching path's description")
-		jsonBody 	= fetchCourseLinks(courses[userInput]['url'])
+        print(f"\n{cyan}[*] Fetching path's description")
+        jsonBody 	= fetchCourseLinks(courses[userInput]['url'])
 
-		print(f"{yellow}[*] Fetching videos links")
-		videoURLs 	= parseCourseLinks(jsonBody)
+        print(f"{yellow}[*] Fetching videos links")
+        videoURLs 	= parseCourseLinks(jsonBody)
 
-		playlstName = []
-		playlistURL	= []
-		ddlURLs 	= []
-		commands 	= []
+        playlstName = []
+        playlistURL	= []
+        ddlURLs 	= []
+        commands 	= []
 
-		for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
-		for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
+        for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
+        for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
 
-		print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
-		print()
-		with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
-			for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
-				if debug: print(results)
-				if results != None:
-					ddlURLs.append(results)
+        print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
+        print()
+        with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
+            for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
+                if debug: print(results)
+                if results != None:
+                    ddlURLs.append(results)
 
-		print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
+        print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
 
-		print(f"\n{green}[*] Creating commands for downloading ...")
-		for urls in ddlURLs:
-			for vidName, downloadLink in urls.items():
-				c 	= downloadVideos(vidName, downloadLink, dirName)
-				commands.append(c)
+        print(f"\n{green}[*] Creating commands for downloading ...")
+        for urls in ddlURLs:
+            for vidName, downloadLink in urls.items():
+                c 	= downloadVideos(vidName, downloadLink, dirName)
+                commands.append(c)
 
 
-		print(f"\n{yellow}[&] Starting downloading ...{white}")
+        print(f"\n{yellow}[&] Starting downloading ...{white}")
 
-		with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
-			executor.map(runCommand, commands)
+        with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
+            executor.map(runCommand, commands)
 
-	else:
-		print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
+    else:
+        print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
 
 
 if __name__ == '__main__':
-	try:
-		main()
+    try:
+        main()
 
-	except KeyboardInterrupt:
-		print("[!] Okay-sed :(")
+    except KeyboardInterrupt:
+        print("[!] Okay-sed :(")
