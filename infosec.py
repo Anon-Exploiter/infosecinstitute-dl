@@ -271,7 +271,7 @@ def main():
     password 	= ""
 
     # For docker image or github workflows
-    if os.getenv('IUSERNAME'):
+    if os.getenv('IUSERNAME') and os.getenv('IPASSWORD'):
         username = os.getenv('IUSERNAME')
         password = os.getenv('IPASSWORD')
 
