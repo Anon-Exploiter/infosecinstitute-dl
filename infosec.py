@@ -267,8 +267,13 @@ def main():
     ddlURLs 	= []
     loginURL 	= "https://app.infosecinstitute.com/portal/login"
 
-	username 	= ""
-	password 	= ""
+    username 	= ""
+    password 	= ""
+
+    # For docker image or github workflows
+    if os.getenv('IUSERNAME'):
+        username = os.getenv('IUSERNAME')
+        password = os.getenv('IPASSWORD')
 
     if username == '' and password == '': exit("[!] Please edit and rerun the script with credentials")
 
