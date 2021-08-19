@@ -302,9 +302,8 @@ def main():
 
         print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
         print()
-        with concurrent.futures.ProcessPoolExecutor(max_workers = 10) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
             for results in executor.map(returnVideoDownloadLink, [host] * len(playlistURL), playlistURL, playlstName):
-                if debug: print(results)
                 if results != None:
                     ddlURLs.append(results)
 
