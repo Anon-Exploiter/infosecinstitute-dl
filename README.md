@@ -24,7 +24,7 @@ Infosec.py automates everything, it'll return the list of all [paths](https://fl
 
 You also need to add your credentials in the script's main() function [L264](https://github.com/Anon-Exploiter/infosecinstitute-dl/blob/master/infosec.py#L264). The course link format is also given in the script.
 
-```python3
+```python
 def main():
   ddlURLs 	= []
   host 		= "..."
@@ -44,6 +44,30 @@ def main():
 - Pop! OS 18.04 LTS
 - ~Windows~
 - ~Mac OS~ (it doesn't work on Mac OS atm)
+
+### Execution
+If you want, you can edit the file `infosec.py` and hard-code the credentials in the variables or you use can environmental variables in two ways, directly through exporting in CLI or by adding credentials in `creds.sh` and source it. 
+
+On **linux** (with `env variables`):
+```bash
+export IUSERNAME=test@gmail.com
+export IPASSWORD=password
+
+python3 infosec.py
+```
+
+On **linux** (with `creds.sh`): 
+```bash
+source creds.sh
+python3 infosec.py
+```
+
+The script doesn't work well on **Mac OS** and on **Windows**. **Mac** has some weird issues in execution while Windows doesn't have `aria2` (it now does have it, but ah well) - So the solution to all this is to use a Docker container built from a `Dockerfile`. 
+
+```bash
+docker build -t infosec-institute .
+docker run -it --rm -e 'IUSERNAME=test@test.com' -e 'IPASSWORD=pswd' infosec-institute
+```
 
 ### Features
 - Lists all courses
