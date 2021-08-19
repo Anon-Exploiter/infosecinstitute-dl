@@ -197,6 +197,9 @@ def returnVideoDownloadLink(host, vidURLs, videoName):
     elif "/lab/" in vidURLs: # Skip the labs
         pass
 
+    elif "/quiz/" in vidURLs:
+        pass
+
     else:
         response 	= requests.get(vidURLs,
             headers = HEADERS,
