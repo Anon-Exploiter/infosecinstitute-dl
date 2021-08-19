@@ -9,8 +9,6 @@ from sys import argv
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 HEADERS = {
-	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36",
-	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
     "Referer": "https://flex.infosecinstitute.com/portal/register",
@@ -123,15 +121,21 @@ def fetchCourses():
     print(bar)
 
     data 		= {}
-    pagesURL 	= "https://app.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=100"
+    first_page 	= "https://app.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=100"
+    second_page = "https://app.infosecinstitute.com/portal/api/skills/search.json?type=path&page=2&limit=100"
 
-    response 	= requests.get(pagesURL,
+    response1 	= requests.get(first_page,
         headers = HEADERS,
         cookies = COOKIES,
     )
 
-    if response.status_code == 200:
-        jsonData 	= json.loads(response.text)
+    response2 	= requests.get(second_page,
+        headers = HEADERS,
+        cookies = COOKIES,
+    )
+
+    if response1.status_code == 200:
+        jsonData 	= json.loads(response1.text)
         jsonItems 	= jsonData['items']
 
         for objs in jsonItems:
@@ -141,19 +145,33 @@ def fetchCourses():
 
             data[courseId] = {'url': courseURL, 'name': courseName}
 
-        vals 	= json.loads(json.dumps(data)) #, sort_keys=True))
-        for cid in vals.items():
-            print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
-                yellow, cid[0], white,
-                magenta, cid[1]['url'], white,
-                cyan, cid[1]['name'], white,
-            ))
 
-        print(bar)
-        print(len(data))
+    if response2.status_code == 200:
+        jsonData 	= json.loads(response2.text)
+        jsonItems 	= jsonData['items']
 
-        if debug: print(json.dumps(data, indent=4, default=str))
-        return(data)
+        for objs in jsonItems:
+            courseId 	= objs['id']
+            courseName 	= objs['name']
+            courseURL 	= objs['item_url']
+
+            data[courseId] = {'url': courseURL, 'name': courseName}
+
+
+    vals 	= json.loads(json.dumps(data))
+
+    for cid in vals.items():
+        print("{}{:<5}{} | {}{:<60}{} | {}{:<20}{}".format(
+            yellow, cid[0], white,
+            magenta, cid[1]['url'], white,
+            cyan, cid[1]['name'], white,
+        ))
+
+    print(bar)
+    print(f"\n[$] Total courses: {len(data)}")
+
+    if debug: print(json.dumps(data, indent=4, default=str))
+    return(data)
 
 
 def returnVideoDownloadLink(host, vidURLs, videoName):
