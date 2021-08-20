@@ -270,6 +270,11 @@ def runCommand(command):
     os.system(command)
 
 
+def uploadCourses(dirName):
+    command     = f"gupload -p 10 -R 5 '{dirName}'; rm -rfv '{dirName}'"
+    os.system(command)
+
+
 def main():
     ddlURLs 	= []
     loginURL 	= "https://app.infosecinstitute.com/portal/login"
@@ -335,6 +340,8 @@ def main():
             with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
                 executor.map(runCommand, commands)
 
+            uploadCourses(dirName)
+
     elif userInput in courses:
         print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
         print(f"[$] URL: {yellow}{courses[userInput]['url']}{white}")
@@ -375,6 +382,8 @@ def main():
 
         with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
             executor.map(runCommand, commands)
+
+        uploadCourses(dirName)
 
     else:
         print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
