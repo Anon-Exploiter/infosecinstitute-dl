@@ -125,6 +125,8 @@ def fetchCourses():
     first_page 	= "https://app.infosecinstitute.com/portal/api/skills/search.json?type=path&page=1&limit=100"
     second_page = "https://app.infosecinstitute.com/portal/api/skills/search.json?type=path&page=2&limit=100"
 
+    # Fetching the courses statically for now
+
     response1 	= requests.get(first_page,
         headers = HEADERS,
         cookies = COOKIES,
@@ -283,9 +285,24 @@ def main():
     COOKIES['flexcenter'] 	= cookies
 
     courses 	= fetchCourses()
-    userInput 	= int(input("\n[&] Please enter any Course Id from the table above (such as 57): "))
+    userInput 	= input("\n[&] Please enter any Course Id from the table above (such as 57): ")
 
-    if userInput in courses:
+    if userInput != "all":
+        userInput = int(userInput)
+
+    if userInput == 'all':
+        for courseId in courses:
+            print(f"\n[$] Name: {cyan}{courses[courseId]['name']}{white}")
+            print(f"[$] URL: {yellow}{courses[courseId]['url']}{white}")
+
+            dirName 	= courses[courseId]['name'].replace('/', '').replace(',', '').replace('"', '').replace("'", '')
+            createCourseDirectory(dirName)
+
+            print(f"\n{cyan}[*] Fetching path's description")
+            jsonBody 	= fetchCourseLinks(courses[courseId]['url'])
+
+
+    elif userInput in courses:
         print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
         print(f"[$] URL: {yellow}{courses[userInput]['url']}{white}")
 
@@ -295,39 +312,41 @@ def main():
         print(f"\n{cyan}[*] Fetching path's description")
         jsonBody 	= fetchCourseLinks(courses[userInput]['url'])
 
-        print(f"{yellow}[*] Fetching videos links")
-        videoURLs 	= parseCourseLinks(jsonBody)
-
-        playlstName = []
-        playlistURL	= []
-        ddlURLs 	= []
-        commands 	= []
-
-        for urls in videoURLs.items(): playlstName.append(urls[0]) 		# Appending Video Name 	-> i.e. 0
-        for urls in videoURLs.items(): playlistURL.append(urls[1]) 		# Appending URLs 		-> i.e. 1
-
-        print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
-        print()
-        with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
-            for results in executor.map(returnVideoDownloadLink, playlistURL, playlstName):
-                if results != None:
-                    ddlURLs.append(results)
-
-        print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
-
-        print(f"\n{green}[*] Creating commands for downloading ...")
-        for urls in ddlURLs:
-            for vidName, downloadLink in urls.items():
-                c 	= downloadVideos(vidName, downloadLink, dirName)
-                commands.append(c)
-
-        print(f"\n{yellow}[&] Starting downloading ...{white}")
-
-        with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
-            executor.map(runCommand, commands)
 
     else:
         print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
+        exit(1)
+
+    print(f"{yellow}[*] Fetching videos links")
+    videoURLs 	= parseCourseLinks(jsonBody)
+
+    playlstName = []
+    playlistURL	= []
+    ddlURLs 	= []
+    commands 	= []
+
+    for urls in videoURLs.items(): playlstName.append(urls[0])
+    for urls in videoURLs.items(): playlistURL.append(urls[1])
+
+    print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
+    print()
+    with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
+        for results in executor.map(returnVideoDownloadLink, playlistURL, playlstName):
+            if results != None:
+                ddlURLs.append(results)
+
+    print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
+
+    print(f"\n{green}[*] Creating commands for downloading ...")
+    for urls in ddlURLs:
+        for vidName, downloadLink in urls.items():
+            c 	= downloadVideos(vidName, downloadLink, dirName)
+            commands.append(c)
+
+    print(f"\n{yellow}[&] Starting downloading ...{white}")
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
+        executor.map(runCommand, commands)
 
 
 if __name__ == '__main__':

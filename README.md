@@ -22,17 +22,7 @@ InfosecInstitute courses downloader. Requires **Python3** and **aria2** (for dow
 
 Infosec.py automates everything, it'll return the list of all [paths](https://flex.infosecinstitute.com/portal/skills/asset/path), user will enter the path ID, it'll create a new folder and will start downloading all the path files in there. 
 
-You also need to add your credentials in the script's main() function [L264](https://github.com/Anon-Exploiter/infosecinstitute-dl/blob/master/infosec.py#L264). The course link format is also given in the script.
-
-```python
-def main():
-  ddlURLs 	= []
-  host 		= "..."
-  loginURL 	= "..."
-
-  username 	= ""
-  password 	= ""
-```
+Alternatively, you can now use `all` to download all the learning paths available to you. 
 
 ### Requirements
 - aria2
@@ -47,6 +37,18 @@ def main():
 
 ### Execution
 If you want, you can edit the file `infosec.py` and hard-code the credentials in the variables or you use can environmental variables in two ways, directly through exporting in CLI or by adding credentials in `creds.sh` and source it. 
+
+Hardcoding credentials in the file `infosec.py`
+
+```python
+def main():
+    ddlURLs 	= []
+    host 		= "..."
+    loginURL 	= "..."
+
+    username 	= ""
+    password 	= ""
+```
 
 On **linux** (with `env variables`):
 ```bash
@@ -79,15 +81,7 @@ docker run -it --rm -v `pwd`:/root/ -e 'IUSERNAME=test@test.com' -e 'IPASSWORD=p
 PDF files aren't being downloaded now since they're using a external host for rendering the PDFs and that's llviewersg3a.com. Can't find a workaround for this, make sure to submit an issue or PR if you find one. 
 
 ### Filing Bugs/Contribution
-Feel free to file a issue or create a PR if you come across any. Also, before creating a issue, make sure to execute the updated script with `-d` argument and share the whole output for better understanding of the issue (don't share your cookies from the first line). 
+Feel free to file a issue or create a PR if you come across any. Also, before creating a issue, make sure to execute the updated script with `-d` argument and share the whole output for better understanding of the issue.
 ```bash
 python3 infosec.py -d 
 ```
-
-### Changelog
-| Changes                                                                                                   | Release                                             |
-| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Fixed login issue; changed email to username														        | 0.3 - 25-10-2020                                    |
-| Lists all the courses, user will pass userID, will create folder name and will store all vids there       | 0.2 - 27-07-2020                                    |
-| Initial release containing infosec.py & downloader.py -> Requires manual intervention                     | 0.1 - 26-07-2020                                    |
-
