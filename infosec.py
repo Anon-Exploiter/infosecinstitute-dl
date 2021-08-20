@@ -200,7 +200,7 @@ def returnVideoDownloadLink(vidURLs, videoName):
     elif "/lab/" in vidURLs: # Skip the labs
         pass
 
-    elif "/quiz/" in vidURLs:
+    elif "/quiz/" in vidURLs: # Skip the Quizzes
         pass
 
     elif "/portal/skills/" in vidURLs:
