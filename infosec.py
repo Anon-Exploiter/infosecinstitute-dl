@@ -301,6 +301,36 @@ def main():
             print(f"\n{cyan}[*] Fetching path's description")
             jsonBody 	= fetchCourseLinks(courses[courseId]['url'])
 
+            print(f"{yellow}[*] Fetching videos links")
+            videoURLs 	= parseCourseLinks(jsonBody)
+
+            playlstName = []
+            playlistURL	= []
+            ddlURLs 	= []
+            commands 	= []
+
+            for urls in videoURLs.items(): playlstName.append(urls[0])
+            for urls in videoURLs.items(): playlistURL.append(urls[1])
+
+            print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
+            print()
+            with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
+                for results in executor.map(returnVideoDownloadLink, playlistURL, playlstName):
+                    if results != None:
+                        ddlURLs.append(results)
+
+            print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
+
+            print(f"\n{green}[*] Creating commands for downloading ...")
+            for urls in ddlURLs:
+                for vidName, downloadLink in urls.items():
+                    c 	= downloadVideos(vidName, downloadLink, dirName)
+                    commands.append(c)
+
+            print(f"\n{yellow}[&] Starting downloading ...{white}")
+
+            with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
+                executor.map(runCommand, commands)
 
     elif userInput in courses:
         print(f"\n[$] Name: {cyan}{courses[userInput]['name']}{white}")
@@ -312,41 +342,39 @@ def main():
         print(f"\n{cyan}[*] Fetching path's description")
         jsonBody 	= fetchCourseLinks(courses[userInput]['url'])
 
+        print(f"{yellow}[*] Fetching videos links")
+        videoURLs 	= parseCourseLinks(jsonBody)
+
+        playlstName = []
+        playlistURL	= []
+        ddlURLs 	= []
+        commands 	= []
+
+        for urls in videoURLs.items(): playlstName.append(urls[0])
+        for urls in videoURLs.items(): playlistURL.append(urls[1])
+
+        print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
+        print()
+        with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
+            for results in executor.map(returnVideoDownloadLink, playlistURL, playlstName):
+                if results != None:
+                    ddlURLs.append(results)
+
+        print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
+
+        print(f"\n{green}[*] Creating commands for downloading ...")
+        for urls in ddlURLs:
+            for vidName, downloadLink in urls.items():
+                c 	= downloadVideos(vidName, downloadLink, dirName)
+                commands.append(c)
+
+        print(f"\n{yellow}[&] Starting downloading ...{white}")
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
+            executor.map(runCommand, commands)
 
     else:
         print(f"[!] {red}Course not found! Please enter a correct and existing Course ID!{white}")
-        exit(1)
-
-    print(f"{yellow}[*] Fetching videos links")
-    videoURLs 	= parseCourseLinks(jsonBody)
-
-    playlstName = []
-    playlistURL	= []
-    ddlURLs 	= []
-    commands 	= []
-
-    for urls in videoURLs.items(): playlstName.append(urls[0])
-    for urls in videoURLs.items(): playlistURL.append(urls[1])
-
-    print(f"{magenta}[*] Parsing video links for DDL (might take some time)")
-    print()
-    with concurrent.futures.ProcessPoolExecutor(max_workers = 20) as executor:
-        for results in executor.map(returnVideoDownloadLink, playlistURL, playlstName):
-            if results != None:
-                ddlURLs.append(results)
-
-    print(f"\n{blue}[#] Course length: {len(ddlURLs)}")
-
-    print(f"\n{green}[*] Creating commands for downloading ...")
-    for urls in ddlURLs:
-        for vidName, downloadLink in urls.items():
-            c 	= downloadVideos(vidName, downloadLink, dirName)
-            commands.append(c)
-
-    print(f"\n{yellow}[&] Starting downloading ...{white}")
-
-    with concurrent.futures.ProcessPoolExecutor(max_workers = 5) as executor:
-        executor.map(runCommand, commands)
 
 
 if __name__ == '__main__':
