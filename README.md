@@ -66,7 +66,7 @@ The script doesn't work well on **Mac OS** and on **Windows**. **Mac** has some 
 
 ```bash
 docker build -t infosec-institute .
-docker run -it --rm -e 'IUSERNAME=test@test.com' -e 'IPASSWORD=pswd' infosec-institute
+docker run -it --rm -v `pwd`:/root/ -e 'IUSERNAME=test@test.com' -e 'IPASSWORD=pswd' infosec-institute
 ```
 
 ### Features
