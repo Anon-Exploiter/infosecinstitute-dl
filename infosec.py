@@ -203,7 +203,7 @@ def returnVideoDownloadLink(vidURLs, videoName):
     elif "/quiz/" in vidURLs:
         pass
 
-    else:
+    elif "/portal/skills/" in vidURLs:
         response 	= requests.get(vidURLs,
             headers = HEADERS,
             cookies = COOKIES,
@@ -229,6 +229,9 @@ def returnVideoDownloadLink(vidURLs, videoName):
 
         if debug: print({videoName: ddl}); print()
         return({videoName: ddl})
+
+    else:
+        return None
 
 
 def createCourseDirectory(name):
