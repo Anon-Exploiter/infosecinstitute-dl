@@ -42,12 +42,12 @@ Hardcoding credentials in the file `infosec.py`
 
 ```python
 def main():
-    ddlURLs 	= []
-    host 		= "..."
-    loginURL 	= "..."
+    ddlURLs   = []
+    host      = "..."
+    loginURL  = "..."
 
-    username 	= ""
-    password 	= ""
+    username  = ""
+    password  = ""
 ```
 
 On **linux** (with `env variables`):
