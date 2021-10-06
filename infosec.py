@@ -21,9 +21,7 @@ HEADERS = {
     "Connection": "close",
 }
 
-COOKIES = {
-    "flexcenter": "",
-}
+COOKIES = {}
 
 API_HOST = "https://app.infosecinstitute.com"
 
@@ -58,11 +56,11 @@ def login(loginURL, username, password):
             "remember_me": 1,
             "_Token[unlocked]": "",
         },
-        allow_redirects=False,
     )
 
-    flexcenter = response.headers["Set-Cookie"].split(";")[0].split("=")[1]
-    return flexcenter
+    phpsessid = response.request.headers["Cookie"].split(";")[0].split("=")[1]
+    COOKIES["PHPSESSID"] = phpsessid
+    return phpsessid
 
 
 def fetchCourseLinks(url):
@@ -336,8 +334,7 @@ def main():
     if username == "" and password == "":
         exit("[!] Please edit and rerun the script with credentials")
 
-    cookies = login(loginURL, username, password)
-    COOKIES["flexcenter"] = cookies
+    login(loginURL, username, password)
 
     courses = fetchCourses()
     userInput = input(
